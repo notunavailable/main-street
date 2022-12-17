@@ -35,4 +35,17 @@ export default class Sprite {
             else this.frames.val = 0
         }
     }
+
+    checkBoundaryLeft() {
+        return this.position.x >= 0
+    }
+    checkBoundaryRight(width){
+        return this.position.x + this.image.width <= width
+    }
+    checkBoundaryBottom(height){
+        return this.position.y + this.image.height <= height
+    }
+    checkBoundaryTop(){
+        return this.position.y >= 0
+    }
 }

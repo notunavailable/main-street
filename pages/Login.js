@@ -1,69 +1,108 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import styles from '../styles/form.module.css';
 //import {LOGIN_USER } from '../utils/apip-defs';
+import {signIn} from "next-auth/react"
 
 const Login = () => {
-    const[email, setEmail] = useState('');
-    const[password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
 
-    async function onSubmit() {
-        const response = await fetch('http://localhost:5001/api/v1/user/login', {
-            method: "POST",
+    const [isSignUp, setIsSignUp] = useState(false);
+
+    async function onSignInSubmit() {
+        const status = await signIn('credentials', {
+            redirect: true,
+            email: email,
+            password: password,
+            callbackUrl: 'http://localhost:3000/'
+        });
+    }
+
+    const onSignUpSubmit = async () => {
+
+        //Validation
+        if (!email || !email.includes('@') || !password) {
+            alert('Invalid details');
+            return;
+        }
+
+        //POST form values
+        const res = await fetch('/api/auth/signup', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email: email, password: password })
-          });
-          const success = await res.json();
-          console.log(success);
-      }
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            }),
+        });
 
-      async function onSubmit2() {
-        const response = await fetch('http://localhost:5001/api/v1/user/authenticate', {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                withCredentials: true
-            },
-          });
-          try {
-            const user = await response.json();
-            // Print the user's information in the console
-            console.log(user);
-          } catch (err) {
-            // Handle any errors that occur when parsing the JSON response
-            console.error(err);
-          }
-      }
+        //Await for data for any desirable next steps
+        const data = await res.json();
+    };
 
-    return(
-        <div className = {styles.container}>
-            <div className = {styles.containerItem}>
+    const renderSignUpForm = () => {
+        if(isSignUp){
+            return(
+                <div className = {styles.containerItem}>
+                    <label>Name:</label>
+                    <input 
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </div>
+            )
+        }
+        return;
+    }
+
+    const renderSignInButton = () => {
+        if(isSignUp){
+            return;
+        }
+        return(
+            <input
+            type="submit"
+            value="Sign In"
+            onClick={() => onSignInSubmit()}
+        />
+        )
+    }
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.containerItem}>
                 <label>Email:</label>
-                <input 
-                    type = "email"
+                <input
+                    type="email"
                     value={email}
-                    onChange = {(e) => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
             </div>
-            <div className = {styles.containerItem}>
+            <div className={styles.containerItem}>
                 <label>Password:</label>
-                <input 
-                    type = "password"
+                <input
+                    type="password"
                     value={password}
-                    onChange = {(e) => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
             </div>
-            <div className = {styles.containerItem}>
-                <input 
-                    type = "submit"
-                    onClick = {() => onSubmit()}
-                />
-            </div>
-            <div className = {styles.containerItem}>
-                <input 
-                    type = "submit"
-                    onClick = {() => onSubmit2()}
+            {renderSignUpForm()}
+            <div className={styles.containerItem}>
+                {renderSignInButton()}
+                <input
+                    type="submit"
+                    value="Sign Up"
+                    onClick = {() => {
+                        if(isSignUp){
+                            onSignUpSubmit();
+                        } else {
+                            setIsSignUp(true);
+                        }
+                    }}
                 />
             </div>
         </div>
